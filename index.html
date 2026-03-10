@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>З Днем Народження, Мамо!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+            background: #fff5f7;
+        }
+        .signature-font {
+            font-family: 'Caveat', cursive;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+        }
+        canvas {
+            border: 2px dashed #f472b6;
+            cursor: crosshair;
+            background: white;
+            touch-action: none;
+            width: 100% !important;
+            height: auto !important;
+            max-width: 300px;
+        }
+        
+        /* Box Shake Animation */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .shake-element {
+            animation: shake 0.5s;
+            animation-iteration-count: infinite;
+        }
+
+        /* Explosion effect for opening */
+        .gift-open {
+            animation: zoomOut 0.5s ease-in forwards;
+        }
+
+        @keyframes zoomOut {
+            from { transform: scale(1); opacity: 1; }
+            to { transform: scale(1.5); opacity: 0; }
+        }
+
+        .fade-in {
+            animation: fadeIn 1.2s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            z-index: 100;
+        }
+
+        .gift-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        #gift-box-container {
+            transition: all 0.5s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+
+    <!-- שלב 1: מסך חתימה -->
+    <div id="auth-screen" class="w-full max-w-md p-8 bg-white rounded-3xl shadow-xl text-center mx-4">
+        <h1 class="text-2xl font-bold text-pink-600 mb-4">Отримання подарунка</h1>
+        <p class="text-gray-600 mb-6">Для отримання дуже вартого подарунка, будь ласка, поставте свій підпис нижче:</p>
+        
+        <div class="relative inline-block mb-6 w-full flex justify-center">
+            <div class="relative">
+                <canvas id="signature-pad" width="300" height="150" class="rounded-lg shadow-inner"></canvas>
+                <button onclick="clearCanvas()" class="absolute -top-3 -right-3 bg-gray-200 text-gray-600 rounded-full p-2 hover:bg-gray-300 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <button id="sign-btn" onclick="startSurprise()" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-full transition-all transform active:scale-95 shadow-md">
+            Підписати та отримати
+        </button>
+    </div>
+
+    <!-- שלב 2: אנימציית המתנה המשקשקת -->
+    <div id="gift-box-container" class="hidden text-center">
+        <div id="gift-box" class="text-9xl mb-4 cursor-pointer">
+            🎁
+        </div>
+        <p class="text-pink-600 font-bold text-xl animate-pulse">Відкриваємо ваш подарунок...</p>
+    </div>
+
+    <!-- שלב 3: מסך ההפתעה הסופי -->
+    <div id="gift-screen" class="hidden w-full max-w-2xl p-4 text-center fade-in">
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden p-6 md:p-10 relative">
+            <h1 class="text-3xl md:text-5xl font-bold text-pink-600 mb-2">З Днем Народження, Мамо!</h1>
+            <p class="text-xl text-pink-400 font-bold mb-6">До 120 років у щасті та здоров'ї!</p>
+            
+            <div class="mb-6 flex justify-center">
+                <img id="mom-photo" 
+                     src="https://lh3.googleusercontent.com/d/1E3Dpbca7_IHCmE22-IBKSZBvL0y7sFGn" 
+                     alt="Подарунок для мами" 
+                     class="gift-image border-4 border-pink-50">
+            </div>
+
+            <div class="space-y-4 text-gray-700 text-lg">
+                <p>Ти — найкраща мама у світі!</p>
+                <p>Ми тебе дуже любимо і бажаємо, щоб кожен твій день був сповнений радості.</p>
+                <div class="mt-6 pt-6 border-t border-pink-50 italic signature-font text-3xl text-pink-500">
+                    З великою любов'ю! ❤️
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('signature-pad');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        function setupCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = 300 * ratio;
+            canvas.height = 150 * ratio;
+            ctx.scale(ratio, ratio);
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#333';
+        }
+        setupCanvas();
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * (canvas.width / rect.width / (window.devicePixelRatio || 1)),
+                y: (clientY - rect.top) * (canvas.height / rect.height / (window.devicePixelRatio || 1))
+            };
+        }
+
+        function startPosition(e) { drawing = true; draw(e); }
+        function finishedPosition() { drawing = false; ctx.beginPath(); }
+        function draw(e) {
+            if (!drawing) return;
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        canvas.addEventListener('mousedown', startPosition);
+        window.addEventListener('mouseup', finishedPosition);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e); });
+        canvas.addEventListener('touchend', finishedPosition);
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+        function startSurprise() {
+            const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            let hasDrawn = false;
+            for (let i = 3; i < pixelData.length; i += 4) { if (pixelData[i] > 0) { hasDrawn = true; break; } }
+
+            if (!hasDrawn) {
+                alert("Будь ласка, поставте підпис спочатку!");
+                return;
+            }
+
+            // שלב המעבר - המתנה
+            document.getElementById('auth-screen').classList.add('hidden');
+            const boxContainer = document.getElementById('gift-box-container');
+            const box = document.getElementById('gift-box');
+            
+            boxContainer.classList.remove('hidden');
+            box.classList.add('shake-element');
+
+            // אחרי 2.5 שניות של שקשוק - פתיחה
+            setTimeout(() => {
+                box.classList.remove('shake-element');
+                box.classList.add('gift-open');
+                
+                setTimeout(() => {
+                    boxContainer.classList.add('hidden');
+                    revealGift();
+                }, 500);
+            }, 2500);
+        }
+
+        function revealGift() {
+            document.getElementById('gift-screen').classList.remove('hidden');
+            document.body.classList.add('gradient-bg');
+            startConfetti();
+        }
+
+        function startConfetti() {
+            const colors = ['#f472b6', '#fb7185', '#ec4899', '#fbcfe8', '#ffffff'];
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = (Math.random() * 8 + 5) + 'px';
+                confetti.style.height = confetti.style.width;
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                document.body.appendChild(confetti);
+                
+                confetti.animate([
+                    { transform: `translate3d(0, -10px, 0) rotate(0deg)`, opacity: 1 },
+                    { transform: `translate3d(${(Math.random() - 0.5) * 200}px, 100vh, 0) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+                ], {
+                    duration: Math.random() * 3000 + 2000,
+                    easing: 'cubic-bezier(0, .9, .6, 1)'
+                }).onfinish = () => confetti.remove();
+            }
+        }
+    </script>
+</body>
+</html>
